@@ -1,20 +1,24 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Renderer))]
 public class SimulationController : MonoBehaviour
 {
     [SerializeField] private Texture2D sourceImage;
-    [SerializeField] private RedWormView redWormView;
+    [SerializeField] private RedWormView redWormViewPrefab;
+    [SerializeField] private BlueWormView blueWormViewPrefab;
+    [SerializeField] private GreenWormView greenWormViewPrefab;
+    [SerializeField] private Transform wormViewsParent;
 
     private Texture2D worldTexture;
     private Color[] pixels;
     public int Width { get; private set; }
     public int Height { get; private set; }
 
-    private RedWorm redWorm;
+    private readonly List<WormBase> worms = new();
 
 
-    void Start()
+    public void Start()
     {
         Width = sourceImage.width;
         Height = sourceImage.height;
@@ -27,13 +31,37 @@ public class SimulationController : MonoBehaviour
 
         GetComponent<Renderer>().material.mainTexture = worldTexture;
 
-        redWorm = new RedWorm(new Vector2Int(Width / 2, Height / 2), 100f);
-        redWormView.Bind(redWorm, this);
+
+        // spawn a few of each worm type
+        for (var i = 0; i < 3; i++)
+        {
+            var x = Random.Range(0, Width);
+            var y = Random.Range(0, Height);
+            var red = new RedWorm(new Vector2Int(x, y), 100f);
+            worms.Add(red);
+            var redView = Instantiate(redWormViewPrefab, wormViewsParent);
+            redView.Bind(red, this);
+
+            x = Random.Range(0, Width);
+            y = Random.Range(0, Height);
+            var blue = new BlueWorm(new Vector2Int(x, y), 100f);
+            worms.Add(blue);
+            var blueView = Instantiate(blueWormViewPrefab, wormViewsParent);
+            blueView.Bind(blue, this);
+
+            x = Random.Range(0, Width);
+            y = Random.Range(0, Height);
+            var green = new GreenWorm(new Vector2Int(x, y), 100f);
+            worms.Add(green);
+            var greenView = Instantiate(greenWormViewPrefab, wormViewsParent);
+            greenView.Bind(green, this);
+        }
     }
 
-    void Update()
+    public void Update()
     {
-        redWorm.Update(this);
+        foreach (var worm in worms)
+            worm.Update(this);
 
         worldTexture.SetPixels(pixels);
         worldTexture.Apply();
@@ -54,6 +82,8 @@ public class SimulationController : MonoBehaviour
 
     public float Eat(Vector2Int centre, int radius, Color amount)
     {
+        const float poopScale = 0.3f;
+
         var radiusSquared = radius * radius;
         var totalEaten = 0f;
 
@@ -69,7 +99,7 @@ public class SimulationController : MonoBehaviour
                 if (x < 0 || x >= Width || y < 0 || y >= Height) continue;
 
                 var index = (y * Width) + x;
-                Color pixel = pixels[index];
+                var pixel = pixels[index];
 
                 var eatR = Mathf.Min(pixel.r, amount.r);
                 var eatG = Mathf.Min(pixel.g, amount.g);
@@ -78,6 +108,11 @@ public class SimulationController : MonoBehaviour
                 pixel.r -= eatR;
                 pixel.g -= eatG;
                 pixel.b -= eatB;
+
+                // convert eaten nutrients into opposite-color waste
+                pixel.r = Mathf.Min(1f, pixel.r + (eatG + eatB) * poopScale);
+                pixel.g = Mathf.Min(1f, pixel.g + (eatR + eatB) * poopScale);
+                pixel.b = Mathf.Min(1f, pixel.b + (eatR + eatG) * poopScale);
 
                 pixels[index] = pixel;
 
