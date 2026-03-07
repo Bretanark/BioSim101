@@ -16,4 +16,13 @@ public class RedWorm : WormBase
     }
 
     public override string Name => $"RedWorm {Id} at {Position} with energy {Energy}";
+
+    public override WormBase Reproduce(Vector2Int position, float energy) => new RedWorm(position, energy);
+
+    public override void CreateView(SimulationController simulation)
+    {
+        var view = Object.Instantiate(simulation.RedWormViewPrefab, simulation.WormViewsParent);
+        view.Bind(this, simulation);
+    }
+
 }

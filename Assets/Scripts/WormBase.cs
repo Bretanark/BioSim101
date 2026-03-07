@@ -6,6 +6,8 @@ public abstract class WormBase
 {
     public abstract Color Eats { get; }
     public abstract string Name { get; }
+    public abstract WormBase Reproduce(Vector2Int position, float energy);
+    public abstract void CreateView(SimulationController simulation);
 
 
     public Vector2Int Position { get; protected set; }
@@ -45,7 +47,13 @@ public abstract class WormBase
         Trail.Add(Position);
         if (Trail.Count > MaxLength) Trail.RemoveAt(0);
 
-        Debug.Log(Name);
+        if (Energy >= 200f)
+        {
+            Energy *= 0.5f;
+            simulation.Reproduce(this);
+        }
+
+        //Debug.Log(Name);
     }
 
     private Vector2Int GetNewPosition(SimulationController simulation)

@@ -18,6 +18,12 @@ public class SimulationController : MonoBehaviour
     public int Height { get; private set; }
 
     private readonly List<WormBase> worms = new();
+    private readonly List<WormBase> pendingWorms = new();
+
+    public RedWormView RedWormViewPrefab => redWormViewPrefab;
+    public BlueWormView BlueWormViewPrefab => blueWormViewPrefab;
+    public GreenWormView GreenWormViewPrefab => greenWormViewPrefab;
+    public Transform WormViewsParent => wormViewsParent;
 
 
     public void Start()
@@ -49,29 +55,34 @@ public class SimulationController : MonoBehaviour
             var y = Random.Range(0, Height);
             var red = new RedWorm(new Vector2Int(x, y), 100f);
             worms.Add(red);
-            var redView = Instantiate(redWormViewPrefab, wormViewsParent);
+            var redView = Instantiate(RedWormViewPrefab, WormViewsParent);
             redView.Bind(red, this);
 
             x = Random.Range(0, Width);
             y = Random.Range(0, Height);
             var blue = new BlueWorm(new Vector2Int(x, y), 100f);
             worms.Add(blue);
-            var blueView = Instantiate(blueWormViewPrefab, wormViewsParent);
+            var blueView = Instantiate(BlueWormViewPrefab, WormViewsParent);
             blueView.Bind(blue, this);
 
             x = Random.Range(0, Width);
             y = Random.Range(0, Height);
             var green = new GreenWorm(new Vector2Int(x, y), 100f);
             worms.Add(green);
-            var greenView = Instantiate(greenWormViewPrefab, wormViewsParent);
+            var greenView = Instantiate(GreenWormViewPrefab, WormViewsParent);
             greenView.Bind(green, this);
         }
     }
 
     public void Update()
     {
+        worms.AddRange(pendingWorms);
+        pendingWorms.Clear();
+
         foreach (var worm in worms)
+        {
             worm.Update(this);
+        }
 
         worldTexture.SetPixels(pixels);
         worldTexture.Apply();
@@ -155,5 +166,18 @@ public class SimulationController : MonoBehaviour
     }
 
     private delegate void ForEachPixelInCircleAction(int index, int dx, int dy);
+
+    public void Reproduce(WormBase parent)
+    {
+        var offset = new Vector2Int(Random.Range(-2, 3), Random.Range(-2, 3));
+        var position = parent.Position + offset;
+
+        position.x = Mathf.Clamp(position.x, 0, Width - 1);
+        position.y = Mathf.Clamp(position.y, 0, Height - 1);
+
+        var child = parent.Reproduce(position, parent.Energy);
+        pendingWorms.Add(child);
+        child.CreateView(this);
+    }
 
 }
