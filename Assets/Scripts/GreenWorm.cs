@@ -7,7 +7,7 @@ public class GreenWorm : WormBase
 
 
     private int Id { get; } = _nextId++;
-    public override Color Eats => Color.darkGreen;
+    public override Color Eats => Color.green;
 
     public GreenWorm(Vector2Int startPosition, float startEnergy)
         : base(startPosition, startEnergy)

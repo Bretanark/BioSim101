@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(Renderer))]
 public class SimulationController : MonoBehaviour
@@ -31,6 +33,14 @@ public class SimulationController : MonoBehaviour
 
         GetComponent<Renderer>().material.mainTexture = worldTexture;
 
+        // ensure quad fills the camera view
+        var cam = Camera.main;
+        if (cam != null && cam.orthographic)
+        {
+            var height = cam.orthographicSize * 2f;
+            var width = height * cam.aspect;
+            transform.localScale = new Vector3(width, height, 1f);
+        }
 
         // spawn a few of each worm type
         for (var i = 0; i < 3; i++)
@@ -80,12 +90,53 @@ public class SimulationController : MonoBehaviour
         return pixels[(position.y * Width) + position.x];
     }
 
-    public float Eat(Vector2Int centre, int radius, Color amount)
+    public float Eat(Vector2Int head, Vector2Int tail, int radius, Color amount, float biteStrength)
     {
-        const float poopScale = 0.3f;
-
-        var radiusSquared = radius * radius;
+        // Eat at the head
         var totalEaten = 0f;
+        ForEachPixelInCircle(head, radius, (index, dx, dy) =>
+        {
+            var pixel = pixels[index];
+
+            var distance = Mathf.Sqrt(dx * dx + dy * dy);
+            var falloff = Mathf.Lerp(0.4f, 1f, 1f - (distance / radius));
+
+            var bite = biteStrength * falloff;
+
+            var eatR = Mathf.Min(pixel.r, amount.r * bite);
+            var eatG = Mathf.Min(pixel.g, amount.g * bite);
+            var eatB = Mathf.Min(pixel.b, amount.b * bite);
+
+            pixel.r -= eatR;
+            pixel.g -= eatG;
+            pixel.b -= eatB;
+
+            pixels[index] = pixel;
+
+            totalEaten += eatR + eatG + eatB;
+        });
+
+        // Poop at the tail
+        const float poopScale = 0.5f;
+        var poop = new Color(1f - amount.r, 1f - amount.g, 1f - amount.b)
+            * totalEaten * poopScale / (Mathf.PI * radius * radius);
+        ForEachPixelInCircle(tail, radius, (index, _, _) =>
+        {
+            var pixel = pixels[index];
+
+            pixel.r = Mathf.Min(1f, pixel.r + poop.r);
+            pixel.g = Mathf.Min(1f, pixel.g + poop.g);
+            pixel.b = Mathf.Min(1f, pixel.b + poop.b);
+
+            pixels[index] = pixel;
+        });
+
+        return totalEaten;
+    }
+
+    private void ForEachPixelInCircle(Vector2Int centre, int radius, ForEachPixelInCircleAction action)
+    {
+        var radiusSquared = radius * radius;
 
         for (var dy = -radius; dy <= radius; dy++)
         {
@@ -98,29 +149,11 @@ public class SimulationController : MonoBehaviour
 
                 if (x < 0 || x >= Width || y < 0 || y >= Height) continue;
 
-                var index = (y * Width) + x;
-                var pixel = pixels[index];
-
-                var eatR = Mathf.Min(pixel.r, amount.r);
-                var eatG = Mathf.Min(pixel.g, amount.g);
-                var eatB = Mathf.Min(pixel.b, amount.b);
-
-                pixel.r -= eatR;
-                pixel.g -= eatG;
-                pixel.b -= eatB;
-
-                // convert eaten nutrients into opposite-color waste
-                pixel.r = Mathf.Min(1f, pixel.r + (eatG + eatB) * poopScale);
-                pixel.g = Mathf.Min(1f, pixel.g + (eatR + eatB) * poopScale);
-                pixel.b = Mathf.Min(1f, pixel.b + (eatR + eatG) * poopScale);
-
-                pixels[index] = pixel;
-
-                totalEaten += eatR + eatG + eatB;
+                action((y * Width) + x, dx, dy);
             }
         }
-
-        return totalEaten;
     }
+
+    private delegate void ForEachPixelInCircleAction(int index, int dx, int dy);
 
 }

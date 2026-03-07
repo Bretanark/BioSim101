@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public abstract class WormBase
@@ -16,8 +17,13 @@ public abstract class WormBase
     public int SightRadius { get; set; } = 12;
     public float ForwardBias { get; set; } = 0.01f;
     public int MaxLength { get; set; } = 20;
+    public float BiteStrength { get; set; } = 0.5f;
+
+    /// <summary>How much energy each cycle takes</summary>
     public float Fatigue { get; set; } = 0.1f;
-    public float Metabolism { get; set; } = 0.1f;
+
+    /// <summary>How much energy is gained by eating</summary>
+    public float Metabolism { get; set; } = 0.10f;
 
 
     protected WormBase(Vector2Int startPosition, float startEnergy)
@@ -29,6 +35,21 @@ public abstract class WormBase
 
     public virtual void Update(SimulationController simulation)
     {
+        var newPosition = GetNewPosition(simulation);
+
+        Direction = new Vector2Int(newPosition.x - Position.x, newPosition.y - Position.y);
+        Position = newPosition;
+
+        Energy += simulation.Eat(Position, Trail.Last(), Radius, Eats, BiteStrength) * Metabolism - Fatigue;
+
+        Trail.Add(Position);
+        if (Trail.Count > MaxLength) Trail.RemoveAt(0);
+
+        Debug.Log(Name);
+    }
+
+    private Vector2Int GetNewPosition(SimulationController simulation)
+    {
         var best = Position;
         var bestScore = float.MinValue;
 
@@ -38,6 +59,7 @@ public abstract class WormBase
             {
                 if (dx == 0 && dy == 0) continue;
                 if ((dx * dx) + (dy * dy) > SightRadius * SightRadius) continue;
+                if (Mathf.Abs(dx) <= 1 && Mathf.Abs(dy) <= 1) continue;
 
                 var x = Mathf.Clamp(Position.x + dx, 0, simulation.Width - 1);
                 var y = Mathf.Clamp(Position.y + dy, 0, simulation.Height - 1);
@@ -48,7 +70,7 @@ public abstract class WormBase
 
                 var dir = new Vector2(dx, dy).normalized;
                 var forward = Vector2.Dot(dir, Direction);
-                var score = food + ForwardBias * forward;
+                var score = food + ForwardBias * forward + Random.value * 0.01f;
 
                 if (score <= bestScore) continue;
 
@@ -60,19 +82,11 @@ public abstract class WormBase
         var stepX = Mathf.Clamp(best.x - Position.x, -1, 1);
         var stepY = Mathf.Clamp(best.y - Position.y, -1, 1);
 
-        var newPos = new Vector2Int(
+        var result = new Vector2Int(
             Mathf.Clamp(Position.x + stepX, 0, simulation.Width - 1),
             Mathf.Clamp(Position.y + stepY, 0, simulation.Height - 1));
 
-        Direction = new Vector2Int(newPos.x - Position.x, newPos.y - Position.y);
-
-        Position = newPos;
-
-        Energy += simulation.Eat(Position, Radius, Eats) * Metabolism - Fatigue;
-
-        Trail.Add(Position);
-        if (Trail.Count > MaxLength) Trail.RemoveAt(0);
-
-        Debug.Log(Name);
+        return result;
     }
+
 }
