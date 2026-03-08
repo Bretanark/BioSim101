@@ -15,8 +15,8 @@ public class SimulationController : MonoBehaviour
     public int Width { get; private set; }
     public int Height { get; private set; }
 
-    private readonly List<Creature> _worms = new();
-    private readonly List<Creature> _pendingWorms = new();
+    private readonly List<Creature> _creatures = new();
+    private readonly List<Creature> _pendingCreatures = new();
 
     public WormView WormViewPrefab => _wormViewPrefab;
     public Transform WormViewsParent => _wormViewsParent;
@@ -44,27 +44,27 @@ public class SimulationController : MonoBehaviour
             transform.localScale = new Vector3(width, height, 1f);
         }
 
-        // spawn a few of each worm type
+        // Spawn some worms
         for (var i = 0; i < 3; i++)
         {
             foreach (var color in new[] { Color.red, Color.green, Color.blue })
             {
                 var x = Random.Range(0, Width);
                 var y = Random.Range(0, Height);
-                var red = new Worm(new Vector2Int(x, y), 100f, color);
-                _worms.Add(red);
+                var worm = new Worm(new Vector2Int(x, y), 100f, color);
+                _creatures.Add(worm);
                 var view = Instantiate(WormViewPrefab, WormViewsParent);
-                view.Bind(red, this, color);
+                view.Bind(worm, this);
             }
         }
     }
 
     public void Update()
     {
-        _worms.AddRange(_pendingWorms);
-        _pendingWorms.Clear();
+        _creatures.AddRange(_pendingCreatures);
+        _pendingCreatures.Clear();
 
-        foreach (var worm in _worms)
+        foreach (var worm in _creatures)
         {
             worm.Update(this);
         }
@@ -161,7 +161,7 @@ public class SimulationController : MonoBehaviour
         position.y = Mathf.Clamp(position.y, 0, Height - 1);
 
         var child = parent.Reproduce(position, parent.Energy);
-        _pendingWorms.Add(child);
+        _pendingCreatures.Add(child);
         child.CreateView(this);
     }
 

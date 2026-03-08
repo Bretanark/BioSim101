@@ -14,7 +14,6 @@ public class WormView : MonoBehaviour
     private SpriteRenderer _bodyRenderer;
     private readonly List<Transform> _segments = new();
 
-    public Color Color { get; set; } = Color.white;
 
 
     public void Awake()
@@ -26,7 +25,7 @@ public class WormView : MonoBehaviour
         _bodyRenderer = _body.GetComponent<SpriteRenderer>();
     }
 
-    public void Bind(Worm worm, SimulationController controller, Color color)
+    public void Bind(Worm worm, SimulationController controller)
     {
         _worm = worm;
         _controller = controller;
@@ -34,7 +33,6 @@ public class WormView : MonoBehaviour
         _segments.Clear();
         _segments.Add(_head);
 
-        Color = color;
         _headRenderer.color = worm.Color;
         _bodyRenderer.color = worm.Color * 0.5f;
     }
@@ -61,7 +59,7 @@ public class WormView : MonoBehaviour
 
             var brightness = headBrightness * fade;
 
-            renderer.color = new Color(brightness * Color.r, brightness * Color.g, brightness * Color.b);
+            renderer.color = new Color(brightness * _worm.Color.r, brightness * _worm.Color.g, brightness * _worm.Color.b);
         }
     }
 
