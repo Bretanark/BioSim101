@@ -354,7 +354,7 @@ GameObject:
   - component: {fileID: 1758806958}
   - component: {fileID: 1758806957}
   m_Layer: 0
-  m_Name: BackgroundQuad
+  m_Name: Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -372,11 +372,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63bec5276d5d5ba4b8269f0222848400, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimulationController
-  sourceImage: {fileID: 2800000, guid: 2ddc0949c2bee464fbd5dceb15d24d17, type: 3}
-  redWormViewPrefab: {fileID: 4493668868182198327, guid: 6594927323cf52f4a8a72d4340e73af2, type: 3}
-  blueWormViewPrefab: {fileID: 5393698678844340021, guid: 2a42af5275c8c2f4b9dd9fa0ba506da6, type: 3}
-  greenWormViewPrefab: {fileID: 192759945187290328, guid: 8cd3cdbb22535914ca64e46af3066a6e, type: 3}
-  wormViewsParent: {fileID: 1921037149}
+  _sourceImage: {fileID: 2800000, guid: 2ddc0949c2bee464fbd5dceb15d24d17, type: 3}
+  _wormViewPrefab: {fileID: 4493668868182198327, guid: 6594927323cf52f4a8a72d4340e73af2, type: 3}
+  _wormViewsParent: {fileID: 1921037149}
 --- !u!64 &1758806958
 MeshCollider:
   m_ObjectHideFlags: 0

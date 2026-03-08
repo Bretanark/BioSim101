@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2099992703503065775}
-  - component: {fileID: 5393698678844340021}
+  - component: {fileID: 4493668868182198327}
   m_Layer: 0
-  m_Name: BlueWormView
+  m_Name: WormView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34,7 +34,7 @@ Transform:
   - {fileID: 947502555125982889}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5393698678844340021
+--- !u!114 &4493668868182198327
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -43,11 +43,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 3871696588569996454}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46e4ab87f00259d4693345c3e174ca42, type: 3}
+  m_Script: {fileID: 11500000, guid: d1612d02f1eea35469f84a3fdbbde60b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BlueWormView
-  headSegment: {fileID: 8161224233751476956}
-  bodySegmentPrefab: {fileID: 947502555125982889}
+  m_EditorClassIdentifier: Assembly-CSharp::RedWormView
+  _head: {fileID: 8161224233751476956}
+  _body: {fileID: 947502555125982889}
 --- !u!1 &4826794686371130536
 GameObject:
   m_ObjectHideFlags: 0
@@ -59,7 +59,7 @@ GameObject:
   - component: {fileID: 947502555125982889}
   - component: {fileID: 7318828686498304607}
   m_Layer: 0
-  m_Name: BlueWormBodySegment
+  m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -130,7 +130,7 @@ SpriteRenderer:
   m_SortingOrder: 9
   m_MaskInteraction: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0, g: 0, b: 0.5019608, a: 1}
+  m_Color: {r: 0.5019608, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: 8161224233751476956}
   - component: {fileID: 2402125735464364513}
   m_Layer: 0
-  m_Name: BlueWormHead
+  m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -221,7 +221,7 @@ SpriteRenderer:
   m_SortingOrder: 10
   m_MaskInteraction: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0, g: 0, b: 1, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

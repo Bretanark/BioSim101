@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public abstract class WormBase
+public abstract class Creature
 {
-    public abstract Color Eats { get; }
+    public abstract Color Color { get; }
     public abstract string Name { get; }
-    public abstract WormBase Reproduce(Vector2Int position, float energy);
+    public abstract Creature Reproduce(Vector2Int position, float energy);
     public abstract void CreateView(SimulationController simulation);
 
 
@@ -28,7 +28,7 @@ public abstract class WormBase
     public float Metabolism { get; set; } = 0.10f;
 
 
-    protected WormBase(Vector2Int startPosition, float startEnergy)
+    protected Creature(Vector2Int startPosition, float startEnergy)
     {
         Position = startPosition;
         Energy = startEnergy;
@@ -42,7 +42,7 @@ public abstract class WormBase
         Direction = new Vector2Int(newPosition.x - Position.x, newPosition.y - Position.y);
         Position = newPosition;
 
-        Energy += simulation.Eat(Position, Trail.Last(), Radius, Eats, BiteStrength) * Metabolism - Fatigue;
+        Energy += simulation.Eat(Position, Trail.Last(), Radius, Color, BiteStrength) * Metabolism - Fatigue;
 
         Trail.Add(Position);
         if (Trail.Count > MaxLength) Trail.RemoveAt(0);
@@ -74,7 +74,7 @@ public abstract class WormBase
 
                 var p = new Vector2Int(x, y);
                 var pixel = simulation.GetPixel(p);
-                var food = pixel.r * Eats.r + pixel.g * Eats.g + pixel.b * Eats.b;
+                var food = pixel.r * Color.r + pixel.g * Color.g + pixel.b * Color.b;
 
                 var dir = new Vector2(dx, dy).normalized;
                 var forward = Vector2.Dot(dir, Direction);

@@ -6,38 +6,34 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(Renderer))]
 public class SimulationController : MonoBehaviour
 {
-    [SerializeField] private Texture2D sourceImage;
-    [SerializeField] private RedWormView redWormViewPrefab;
-    [SerializeField] private BlueWormView blueWormViewPrefab;
-    [SerializeField] private GreenWormView greenWormViewPrefab;
-    [SerializeField] private Transform wormViewsParent;
+    [SerializeField] private Texture2D _sourceImage;
+    [SerializeField] private WormView _wormViewPrefab;
+    [SerializeField] private Transform _wormViewsParent;
 
-    private Texture2D worldTexture;
-    private Color[] pixels;
+    private Texture2D _worldTexture;
+    private Color[] _pixels;
     public int Width { get; private set; }
     public int Height { get; private set; }
 
-    private readonly List<WormBase> worms = new();
-    private readonly List<WormBase> pendingWorms = new();
+    private readonly List<Creature> _worms = new();
+    private readonly List<Creature> _pendingWorms = new();
 
-    public RedWormView RedWormViewPrefab => redWormViewPrefab;
-    public BlueWormView BlueWormViewPrefab => blueWormViewPrefab;
-    public GreenWormView GreenWormViewPrefab => greenWormViewPrefab;
-    public Transform WormViewsParent => wormViewsParent;
+    public WormView WormViewPrefab => _wormViewPrefab;
+    public Transform WormViewsParent => _wormViewsParent;
 
 
     public void Start()
     {
-        Width = sourceImage.width;
-        Height = sourceImage.height;
+        Width = _sourceImage.width;
+        Height = _sourceImage.height;
 
-        pixels = sourceImage.GetPixels();
+        _pixels = _sourceImage.GetPixels();
 
-        worldTexture = new Texture2D(Width, Height, TextureFormat.RGB24, false);
-        worldTexture.SetPixels(pixels);
-        worldTexture.Apply();
+        _worldTexture = new Texture2D(Width, Height, TextureFormat.RGB24, false);
+        _worldTexture.SetPixels(_pixels);
+        _worldTexture.Apply();
 
-        GetComponent<Renderer>().material.mainTexture = worldTexture;
+        GetComponent<Renderer>().material.mainTexture = _worldTexture;
 
         // ensure quad fills the camera view
         var cam = Camera.main;
@@ -51,41 +47,30 @@ public class SimulationController : MonoBehaviour
         // spawn a few of each worm type
         for (var i = 0; i < 3; i++)
         {
-            var x = Random.Range(0, Width);
-            var y = Random.Range(0, Height);
-            var red = new RedWorm(new Vector2Int(x, y), 100f);
-            worms.Add(red);
-            var redView = Instantiate(RedWormViewPrefab, WormViewsParent);
-            redView.Bind(red, this);
-
-            x = Random.Range(0, Width);
-            y = Random.Range(0, Height);
-            var blue = new BlueWorm(new Vector2Int(x, y), 100f);
-            worms.Add(blue);
-            var blueView = Instantiate(BlueWormViewPrefab, WormViewsParent);
-            blueView.Bind(blue, this);
-
-            x = Random.Range(0, Width);
-            y = Random.Range(0, Height);
-            var green = new GreenWorm(new Vector2Int(x, y), 100f);
-            worms.Add(green);
-            var greenView = Instantiate(GreenWormViewPrefab, WormViewsParent);
-            greenView.Bind(green, this);
+            foreach (var color in new[] { Color.red, Color.green, Color.blue })
+            {
+                var x = Random.Range(0, Width);
+                var y = Random.Range(0, Height);
+                var red = new Worm(new Vector2Int(x, y), 100f, color);
+                _worms.Add(red);
+                var view = Instantiate(WormViewPrefab, WormViewsParent);
+                view.Bind(red, this, color);
+            }
         }
     }
 
     public void Update()
     {
-        worms.AddRange(pendingWorms);
-        pendingWorms.Clear();
+        _worms.AddRange(_pendingWorms);
+        _pendingWorms.Clear();
 
-        foreach (var worm in worms)
+        foreach (var worm in _worms)
         {
             worm.Update(this);
         }
 
-        worldTexture.SetPixels(pixels);
-        worldTexture.Apply();
+        _worldTexture.SetPixels(_pixels);
+        _worldTexture.Apply();
     }
 
     public Vector3 PixelToWorld(Vector2Int pixelPosition)
@@ -98,7 +83,7 @@ public class SimulationController : MonoBehaviour
 
     public Color GetPixel(Vector2Int position)
     {
-        return pixels[(position.y * Width) + position.x];
+        return _pixels[(position.y * Width) + position.x];
     }
 
     public float Eat(Vector2Int head, Vector2Int tail, int radius, Color amount, float biteStrength)
@@ -107,7 +92,7 @@ public class SimulationController : MonoBehaviour
         var totalEaten = 0f;
         ForEachPixelInCircle(head, radius, (index, dx, dy) =>
         {
-            var pixel = pixels[index];
+            var pixel = _pixels[index];
 
             var distance = Mathf.Sqrt(dx * dx + dy * dy);
             var falloff = Mathf.Lerp(0.4f, 1f, 1f - (distance / radius));
@@ -122,7 +107,7 @@ public class SimulationController : MonoBehaviour
             pixel.g -= eatG;
             pixel.b -= eatB;
 
-            pixels[index] = pixel;
+            _pixels[index] = pixel;
 
             totalEaten += eatR + eatG + eatB;
         });
@@ -133,13 +118,13 @@ public class SimulationController : MonoBehaviour
             * totalEaten * poopScale / (Mathf.PI * radius * radius);
         ForEachPixelInCircle(tail, radius, (index, _, _) =>
         {
-            var pixel = pixels[index];
+            var pixel = _pixels[index];
 
             pixel.r = Mathf.Min(1f, pixel.r + poop.r);
             pixel.g = Mathf.Min(1f, pixel.g + poop.g);
             pixel.b = Mathf.Min(1f, pixel.b + poop.b);
 
-            pixels[index] = pixel;
+            _pixels[index] = pixel;
         });
 
         return totalEaten;
@@ -167,7 +152,7 @@ public class SimulationController : MonoBehaviour
 
     private delegate void ForEachPixelInCircleAction(int index, int dx, int dy);
 
-    public void Reproduce(WormBase parent)
+    public void Reproduce(Creature parent)
     {
         var offset = new Vector2Int(Random.Range(-2, 3), Random.Range(-2, 3));
         var position = parent.Position + offset;
@@ -176,7 +161,7 @@ public class SimulationController : MonoBehaviour
         position.y = Mathf.Clamp(position.y, 0, Height - 1);
 
         var child = parent.Reproduce(position, parent.Energy);
-        pendingWorms.Add(child);
+        _pendingWorms.Add(child);
         child.CreateView(this);
     }
 
