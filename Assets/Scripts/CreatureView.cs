@@ -6,7 +6,7 @@ public abstract class CreatureView<TCreature> : MonoBehaviour
     protected TCreature Creature { get; private set; }
     protected SimulationController Controller { get; private set; }
 
-    private float _fade;
+    private float _deathFade;
 
     public void Bind(TCreature creature, SimulationController controller)
     {
@@ -21,10 +21,10 @@ public abstract class CreatureView<TCreature> : MonoBehaviour
     {
         if (Creature.IsDead)
         {
-            _fade += Time.deltaTime / 5f;
-            UpdateDying(1f - Mathf.Clamp01(_fade));
+            _deathFade += Time.deltaTime / 5f;
+            UpdateDying(1f - Mathf.Clamp01(_deathFade));
 
-            if (_fade >= 1f)
+            if (_deathFade >= 1f)
                 Destroy(gameObject);
 
             return;

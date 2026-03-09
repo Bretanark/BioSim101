@@ -12,9 +12,9 @@ public class SimulationController : MonoBehaviour
     [SerializeField] private MushroomView _mushroomViewPrefab;
     [SerializeField] private float _pixelSize = 0.01f;
 
-
     private Texture2D _worldTexture;
     private Color[] _pixels;
+
     public int Width { get; private set; }
     public int Height { get; private set; }
 
@@ -51,7 +51,7 @@ public class SimulationController : MonoBehaviour
         // Spawn some creatures
         for (var i = 0; i < 3; i++)
         {
-            foreach (var color in new[] { Color.red, Color.green, Color.blue })
+            foreach (var color in new[] { Color.red, Color.green, Color.blue})
             {
                 var worm = new Worm(new Vector2Int(Random.Range(0, Width), Random.Range(0, Height)), 100f, color);
                 _creatures.Add(worm);
@@ -84,7 +84,13 @@ public class SimulationController : MonoBehaviour
 
     public float PixelToWorld(float pixels) => pixels * _pixelSize;
 
-    public Vector3 PixelToWorld(Vector2Int pixelPosition) => new Vector3(pixelPosition.x * _pixelSize, pixelPosition.y * _pixelSize, 0f);
+    public Vector3 PixelToWorld(Vector2Int pixelPosition)
+    {
+        var x = ((pixelPosition.x + 0.5f) / Width - 0.5f) * transform.localScale.x;
+        var y = ((pixelPosition.y + 0.5f) / Height - 0.5f) * transform.localScale.y;
+
+        return transform.position + new Vector3(x, y, 0f);
+    }
 
     public Color GetPixel(Vector2Int position) => _pixels[(position.y * Width) + position.x];
 

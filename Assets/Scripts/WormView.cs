@@ -8,7 +8,7 @@ public class WormView : CreatureView<Worm>
     [SerializeField] private Transform _head;
     [SerializeField] private Transform _body;
 
-    private float _fade = -1.1f;
+    private const float BodyFade = -1.1f;
     private SpriteRenderer _headRenderer;
     private SpriteRenderer _bodyRenderer;
     private readonly List<Transform> _segments = new();
@@ -51,7 +51,7 @@ public class WormView : CreatureView<Worm>
             var renderer = _segments[i].GetComponent<SpriteRenderer>();
 
             var t = i / (float)_segments.Count;
-            var fade = Mathf.Exp(_fade * t);   // exponential falloff
+            var fade = Mathf.Exp(BodyFade * t);   // exponential falloff
 
             var brightness = headBrightness * fade;
 
