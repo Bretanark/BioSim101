@@ -36,7 +36,7 @@ public class Worm : Creature
 
     public override void CreateView(SimulationController controller)
     {
-        var view = Object.Instantiate(controller.WormViewPrefab, controller.WormViewsParent);
+        var view = Object.Instantiate(controller.WormViewPrefab, controller.CreatureViewsParent);
         view.Bind(this, controller);
     }
 

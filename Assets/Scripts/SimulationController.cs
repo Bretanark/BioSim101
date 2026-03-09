@@ -8,7 +8,10 @@ public class SimulationController : MonoBehaviour
 {
     [SerializeField] private Texture2D _sourceImage;
     [SerializeField] private WormView _wormViewPrefab;
-    [SerializeField] private Transform _wormViewsParent;
+    [SerializeField] private Transform _creatureViewsParent;
+    [SerializeField] private MushroomView _mushroomViewPrefab;
+    [SerializeField] private float _pixelSize = 0.01f;
+
 
     private Texture2D _worldTexture;
     private Color[] _pixels;
@@ -18,8 +21,9 @@ public class SimulationController : MonoBehaviour
     private readonly List<Creature> _creatures = new();
     private readonly List<Creature> _pendingCreatures = new();
 
+    public Transform CreatureViewsParent => _creatureViewsParent;
+    public MushroomView MushroomViewPrefab => _mushroomViewPrefab;
     public WormView WormViewPrefab => _wormViewPrefab;
-    public Transform WormViewsParent => _wormViewsParent;
 
 
     public void Start()
@@ -44,17 +48,18 @@ public class SimulationController : MonoBehaviour
             transform.localScale = new Vector3(width, height, 1f);
         }
 
-        // Spawn some worms
+        // Spawn some creatures
         for (var i = 0; i < 3; i++)
         {
             foreach (var color in new[] { Color.red, Color.green, Color.blue })
             {
-                var x = Random.Range(0, Width);
-                var y = Random.Range(0, Height);
-                var worm = new Worm(new Vector2Int(x, y), 100f, color);
+                var worm = new Worm(new Vector2Int(Random.Range(0, Width), Random.Range(0, Height)), 100f, color);
                 _creatures.Add(worm);
-                var view = Instantiate(WormViewPrefab, WormViewsParent);
-                view.Bind(worm, this);
+                worm.CreateView(this);
+
+                var mushroom = new Mushroom(new Vector2Int(Random.Range(0, Width), Random.Range(0, Height)), 100f, color);
+                _creatures.Add(mushroom);
+                mushroom.CreateView(this);
             }
         }
     }
@@ -75,18 +80,13 @@ public class SimulationController : MonoBehaviour
         _worldTexture.Apply();
     }
 
-    public Vector3 PixelToWorld(Vector2Int pixelPosition)
-    {
-        var x = ((pixelPosition.x + 0.5f) / Width - 0.5f) * transform.localScale.x;
-        var y = ((pixelPosition.y + 0.5f) / Height - 0.5f) * transform.localScale.y;
+    public float PixelSize => _pixelSize;
 
-        return transform.position + new Vector3(x, y, 0);
-    }
+    public float PixelToWorld(float pixels) => pixels * _pixelSize;
 
-    public Color GetPixel(Vector2Int position)
-    {
-        return _pixels[(position.y * Width) + position.x];
-    }
+    public Vector3 PixelToWorld(Vector2Int pixelPosition) => new Vector3(pixelPosition.x * _pixelSize, pixelPosition.y * _pixelSize, 0f);
+
+    public Color GetPixel(Vector2Int position) => _pixels[(position.y * Width) + position.x];
 
     public float Eat(Vector2Int head, Vector2Int tail, int radius, Color amount, float biteStrength)
     {
