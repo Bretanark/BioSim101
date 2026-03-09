@@ -69,6 +69,8 @@ public class SimulationController : MonoBehaviour
             worm.Update(this);
         }
 
+        _creatures.RemoveAll(c => c.IsDead);
+
         _worldTexture.SetPixels(_pixels);
         _worldTexture.Apply();
     }

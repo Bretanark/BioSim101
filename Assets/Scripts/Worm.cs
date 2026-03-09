@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class Worm : Creature
 {
-    public readonly static Dictionary<Color, int> InstanceCount = new();
     private static int _nextId = 1;
 
 
@@ -27,7 +26,6 @@ public class Worm : Creature
     public Worm(Vector2Int startPosition, float startEnergy, Color color)
         : base(startPosition, startEnergy, color)
     {
-        InstanceCount[color] = InstanceCount.TryGetValue(Color, out var instanceCount) ? instanceCount + 1: 1;
         Trail.Add(startPosition);
     }
 
@@ -43,6 +41,8 @@ public class Worm : Creature
 
     public override void Update(SimulationController simulation)
     {
+        //Debug.Log(Name);
+
         var newPosition = GetNewPosition(simulation);
 
         Direction = new Vector2Int(newPosition.x - Position.x, newPosition.y - Position.y);
@@ -53,13 +53,7 @@ public class Worm : Creature
         Trail.Add(Position);
         if (Trail.Count > MaxLength) Trail.RemoveAt(0);
 
-        if (Energy >= 200f)
-        {
-            Energy *= 0.5f;
-            simulation.Reproduce(this);
-        }
-
-        //Debug.Log(Name);
+        base.Update(simulation);
     }
 
     private Vector2Int GetNewPosition(SimulationController simulation)
