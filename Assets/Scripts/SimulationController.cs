@@ -167,4 +167,24 @@ public class SimulationController : MonoBehaviour
         child.CreateView(this);
     }
 
+    public float GetShynessPenalty(Vector2Int position, Creature self)
+    {
+        var penalty = 0f;
+
+        foreach (var creature in _creatures)
+        {
+            if (creature == self) continue;
+            if (creature.IsDead) continue;
+
+            var distance = Vector2Int.Distance(position, creature.Position);
+            if (distance <= 0f) continue;
+            if (distance >= creature.AvoidanceRadius) continue;
+
+            var t = 1f - distance / creature.AvoidanceRadius;
+            penalty += t;
+        }
+
+        return penalty;
+    }
+
 }

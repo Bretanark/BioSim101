@@ -80,7 +80,8 @@ public class Worm : Creature
 
                 var dir = new Vector2(dx, dy).normalized;
                 var forward = Vector2.Dot(dir, Direction);
-                var score = food + ForwardBias * forward + Random.value * 0.01f;
+                var shyness = simulation.GetShynessPenalty(p, this);
+                var score = food + ForwardBias * forward + Random.value * 0.01f - shyness;
 
                 if (score <= bestScore) continue;
 

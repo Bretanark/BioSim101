@@ -19,6 +19,8 @@ public abstract class Creature
 
     public int Population => PopulationByKey[GetPopulationKey()];
 
+    public virtual float AvoidanceRadius => 50f;
+
 
     protected Creature(Vector2Int startPosition, float startEnergy, Color color)
     {
