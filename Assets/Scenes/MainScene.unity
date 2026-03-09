@@ -374,7 +374,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SimulationController
   _sourceImage: {fileID: 2800000, guid: 2ddc0949c2bee464fbd5dceb15d24d17, type: 3}
   _wormViewPrefab: {fileID: 4493668868182198327, guid: 6594927323cf52f4a8a72d4340e73af2, type: 3}
-  _wormViewsParent: {fileID: 1921037149}
+  _creatureViewsParent: {fileID: 1921037149}
+  _mushroomViewPrefab: {fileID: 393764371420688221, guid: f08c4968ebde33943b22570390e2be85, type: 3}
+  _pixelSize: 0.01
 --- !u!64 &1758806958
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -479,7 +481,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1921037149}
   m_Layer: 0
-  m_Name: WormViews
+  m_Name: CreatureViews
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

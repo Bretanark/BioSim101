@@ -2,15 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WormView : MonoBehaviour
+[RequireComponent(typeof(SpriteRenderer))]
+public class WormView : CreatureView<Worm>
 {
     [SerializeField] private Transform _head;
     [SerializeField] private Transform _body;
 
     private float _fade = -1.1f;
-    private float _deathFade;
-    private Worm _worm;
-    private SimulationController _controller;
     private SpriteRenderer _headRenderer;
     private SpriteRenderer _bodyRenderer;
     private readonly List<Transform> _segments = new();
@@ -26,48 +24,27 @@ public class WormView : MonoBehaviour
         _bodyRenderer = _body.GetComponent<SpriteRenderer>();
     }
 
-    public void Bind(Worm worm, SimulationController controller)
+    protected override void OnBind()
     {
-        _worm = worm;
-        _controller = controller;
-
         _segments.Clear();
         _segments.Add(_head);
 
-        _headRenderer.color = worm.Color;
-        _bodyRenderer.color = worm.Color * 0.5f;
+        _headRenderer.color = Creature.Color;
+        _bodyRenderer.color = Creature.Color * 0.5f;
     }
 
-    public void Update()
+    protected override void UpdateAlive()
     {
-        if (_worm.IsDead)
+        transform.position = Controller.PixelToWorld(Creature.Position);
+
+        EnsureSegmentCount(Creature.Trail.Count);
+
+        for (var i = 1; i < Creature.Trail.Count; i++)
         {
-            _deathFade += Time.deltaTime / 5f; // fade out over 5s
-
-            foreach (var segment in _segments)
-            {
-                var renderer = segment.GetComponent<SpriteRenderer>();
-                var c = renderer.color;
-                c.a = Mathf.Clamp01(1f - _deathFade);
-                renderer.color = c;
-            }
-
-            if (_deathFade > 1f)
-                Destroy(gameObject);
-
-            return;
+            _segments[i].localPosition = Controller.PixelToWorld(Creature.Trail[^(i + 1)]) - transform.position;
         }
 
-        transform.position = _controller.PixelToWorld(_worm.Position);
-
-        EnsureSegmentCount(_worm.Trail.Count);
-
-        for (var i = 1; i < _worm.Trail.Count; i++)
-        {
-            _segments[i].localPosition = _controller.PixelToWorld(_worm.Trail[^(i + 1)]) - transform.position;
-        }
-
-        var headBrightness = Mathf.Clamp01(_worm.Energy / 100f);
+        var headBrightness = Mathf.Clamp01(Creature.Energy / 100f);
 
         for (var i = 0; i < _segments.Count; i++)
         {
@@ -78,7 +55,18 @@ public class WormView : MonoBehaviour
 
             var brightness = headBrightness * fade;
 
-            renderer.color = new Color(brightness * _worm.Color.r, brightness * _worm.Color.g, brightness * _worm.Color.b);
+            renderer.color = new Color(brightness * Creature.Color.r, brightness * Creature.Color.g, brightness * Creature.Color.b);
+        }
+    }
+
+    protected override void UpdateDying(float alpha)
+    {
+        foreach (var segment in _segments)
+        {
+            var renderer = segment.GetComponent<SpriteRenderer>();
+            var c = renderer.color;
+            c.a = alpha;
+            renderer.color = c;
         }
     }
 

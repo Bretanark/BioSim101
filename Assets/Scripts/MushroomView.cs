@@ -2,14 +2,11 @@
 using UnityEngine;
 
 [RequireComponent(typeof(SpriteRenderer))]
-public class MushroomView : MonoBehaviour
+public class MushroomView : CreatureView<Mushroom>
 {
     [SerializeField] private Transform _head;
 
-    private Mushroom _mushroom;
-    private SimulationController _controller;
     private SpriteRenderer _headRenderer;
-    private float _deathFade;
 
     public void Awake()
     {
@@ -18,40 +15,26 @@ public class MushroomView : MonoBehaviour
         _headRenderer = _head.GetComponent<SpriteRenderer>();
     }
 
-    public void Bind(Mushroom mushroom, SimulationController controller)
+    protected override void OnBind()
     {
-        _mushroom = mushroom;
-        _controller = controller;
-
-        _headRenderer.color = mushroom.Color;
+        _headRenderer.color = Creature.Color;
     }
 
-    void Update()
+    protected override void UpdateAlive()
     {
-        if (_mushroom.IsDead)
-        {
-            _deathFade += Time.deltaTime / 5f;
-            var c = _headRenderer.color;
-            c.a = Mathf.Clamp01(1f - _deathFade);
-            _headRenderer.color = c;
+        transform.position = Controller.PixelToWorld(Creature.Position);
 
-            if (_deathFade > 1f)
-                Destroy(gameObject);
+        var diameter = Controller.PixelToWorld(Creature.Radius * 2f);
+        _head.localScale = new Vector3(diameter, diameter, 1f);
 
-            return;
-        }
+        _headRenderer.color = Creature.Color;
+    }
 
-        transform.position = _controller.PixelToWorld(_mushroom.Position);
-
-        var diameterWorld = _controller.PixelToWorld(_mushroom.Radius * 2f);
-        _head.localScale = new Vector3(diameterWorld, diameterWorld, 1f);
-
-        var brightness = Mathf.Clamp01(_mushroom.Energy / 100f);
-        _headRenderer.color = new Color(
-            brightness * _mushroom.Color.r,
-            brightness * _mushroom.Color.g,
-            brightness * _mushroom.Color.b,
-            1f);
+    protected override void UpdateDying(float alpha)
+    {
+        var c = _headRenderer.color;
+        c.a = alpha;
+        _headRenderer.color = c;
     }
 
 }
