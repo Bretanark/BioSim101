@@ -3,7 +3,7 @@ using UnityEngine;
 
 public abstract class Creature
 {
-    public readonly static Dictionary<string, int> InstanceCountByKey = new();
+    public readonly static Dictionary<string, int> PopulationByKey = new();
 
 
     public Color Color { get; }
@@ -15,7 +15,9 @@ public abstract class Creature
     public float Energy { get; protected set; }
     public bool IsDead { get; protected set; }
 
-    private string GetInstanceCountKey() => $"{GetType().Name}_{Color}";
+    private string GetPopulationKey() => $"{GetType().Name}_{Color}";
+
+    public int Population => PopulationByKey[GetPopulationKey()];
 
 
     protected Creature(Vector2Int startPosition, float startEnergy, Color color)
@@ -24,8 +26,8 @@ public abstract class Creature
         Energy = startEnergy;
         Color = color;
 
-        var instanceCountKey = GetInstanceCountKey();
-        InstanceCountByKey[instanceCountKey] = InstanceCountByKey.TryGetValue(instanceCountKey, out var instanceCount) ? instanceCount + 1 : 1;
+        var instanceCountKey = GetPopulationKey();
+        PopulationByKey[instanceCountKey] = PopulationByKey.TryGetValue(instanceCountKey, out var instanceCount) ? instanceCount + 1 : 1;
     }
 
     public virtual void Update(SimulationController simulation)
@@ -38,7 +40,7 @@ public abstract class Creature
         else if (Energy <= 0f && !IsDead)
         {
             IsDead = true;
-            InstanceCountByKey[GetInstanceCountKey()]--;
+            PopulationByKey[GetPopulationKey()]--;
         }
     }
 

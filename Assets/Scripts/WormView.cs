@@ -8,6 +8,7 @@ public class WormView : MonoBehaviour
     [SerializeField] private Transform _body;
 
     private float _fade = -1.1f;
+    private float _deathFade;
     private Worm _worm;
     private SimulationController _controller;
     private SpriteRenderer _headRenderer;
@@ -39,6 +40,24 @@ public class WormView : MonoBehaviour
 
     public void Update()
     {
+        if (_worm.IsDead)
+        {
+            _deathFade += Time.deltaTime / 5f; // fade out over 5s
+
+            foreach (var segment in _segments)
+            {
+                var renderer = segment.GetComponent<SpriteRenderer>();
+                var c = renderer.color;
+                c.a = Mathf.Clamp01(1f - _deathFade);
+                renderer.color = c;
+            }
+
+            if (_deathFade > 1f)
+                Destroy(gameObject);
+
+            return;
+        }
+
         transform.position = _controller.PixelToWorld(_worm.Position);
 
         EnsureSegmentCount(_worm.Trail.Count);

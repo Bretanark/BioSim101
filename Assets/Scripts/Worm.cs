@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Worm : Creature
 {
+    private const float MaxPopulation = 20f;
     private static int _nextId = 1;
 
 
@@ -48,7 +49,8 @@ public class Worm : Creature
         Direction = new Vector2Int(newPosition.x - Position.x, newPosition.y - Position.y);
         Position = newPosition;
 
-        Energy += simulation.Eat(Position, Trail[0], Radius, Color, BiteStrength) * Metabolism - Fatigue;
+        var competition = Mathf.Max(0.1f, 1f - Population / MaxPopulation);
+        Energy += simulation.Eat(Position, Trail[0], Radius, Color, BiteStrength) * Metabolism * competition - Fatigue;
 
         Trail.Add(Position);
         if (Trail.Count > MaxLength) Trail.RemoveAt(0);
