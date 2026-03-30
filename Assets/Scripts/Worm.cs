@@ -4,6 +4,7 @@ using UnityEngine;
 public class Worm : Creature
 {
     private const float MaxPopulation = 20f;
+    private const float startEnergy = 100f;
     private static int _nextId = 1;
 
 
@@ -24,7 +25,7 @@ public class Worm : Creature
 
 
 
-    public Worm(Vector2Int startPosition, float startEnergy, Color color)
+    public Worm(Vector2Int startPosition, Color color)
         : base(startPosition, startEnergy, color)
     {
         Trail.Add(startPosition);
@@ -32,7 +33,7 @@ public class Worm : Creature
 
     public override string Name => $"{Color} worm {Id} at {Position} with energy {Energy}";
 
-    public override Creature Reproduce(Vector2Int position, float energy) => new Worm(position, energy, Color);
+    public override Creature[] Reproduce(SimulationController controller, Vector2Int position, float energy) => new Worm[] { new(position, Color) };
 
     public override void CreateView(SimulationController controller)
     {
@@ -40,10 +41,8 @@ public class Worm : Creature
         view.Bind(this, controller);
     }
 
-    public override void Update(SimulationController simulation)
+    protected override void OnUpdate(SimulationController simulation)
     {
-        //Debug.Log(Name);
-
         var newPosition = GetNewPosition(simulation);
 
         Direction = new Vector2Int(newPosition.x - Position.x, newPosition.y - Position.y);
@@ -54,8 +53,6 @@ public class Worm : Creature
 
         Trail.Add(Position);
         if (Trail.Count > MaxLength) Trail.RemoveAt(0);
-
-        base.Update(simulation);
     }
 
     private Vector2Int GetNewPosition(SimulationController simulation)

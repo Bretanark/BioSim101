@@ -8,7 +8,7 @@ public abstract class Creature
 
     public Color Color { get; }
     public abstract string Name { get; }
-    public abstract Creature Reproduce(Vector2Int position, float energy);
+    public abstract Creature[] Reproduce(SimulationController controller, Vector2Int position, float energy);
     public abstract void CreateView(SimulationController simulation);
 
     public Vector2Int Position { get; protected set; }
@@ -32,18 +32,24 @@ public abstract class Creature
         PopulationByKey[instanceCountKey] = PopulationByKey.TryGetValue(instanceCountKey, out var instanceCount) ? instanceCount + 1 : 1;
     }
 
-    public virtual void Update(SimulationController simulation)
+    public void Update(SimulationController controller)
     {
         if (Energy >= 200f)
         {
             Energy *= 0.5f;
-            simulation.Reproduce(this);
+            controller.Reproduce(this);
         }
         else if (Energy <= 0f && !IsDead)
         {
             IsDead = true;
             PopulationByKey[GetPopulationKey()]--;
+            OnDeath(controller);
         }
+
+        OnUpdate(controller);
     }
+
+    protected virtual void OnUpdate(SimulationController controller) { }
+    protected virtual void OnDeath(SimulationController controller) { }
 
 }

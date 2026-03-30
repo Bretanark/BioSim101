@@ -53,11 +53,11 @@ public class SimulationController : MonoBehaviour
         {
             foreach (var color in new[] { Color.red, Color.green, Color.blue})
             {
-                var worm = new Worm(new Vector2Int(Random.Range(0, Width), Random.Range(0, Height)), 100f, color);
+                var worm = new Worm(new Vector2Int(Random.Range(0, Width), Random.Range(0, Height)), color);
                 _creatures.Add(worm);
                 worm.CreateView(this);
 
-                var mushroom = new Mushroom(new Vector2Int(Random.Range(0, Width), Random.Range(0, Height)), 100f, color);
+                var mushroom = new Mushroom(new Vector2Int(Random.Range(0, Width), Random.Range(0, Height)), color);
                 _creatures.Add(mushroom);
                 mushroom.CreateView(this);
             }
@@ -82,7 +82,7 @@ public class SimulationController : MonoBehaviour
 
     public float PixelSize => _pixelSize;
 
-    public float PixelToWorld(float pixels) => pixels * _pixelSize;
+    public float PixelToWorld(float pixelWidth) => pixelWidth / Width * transform.localScale.x;
 
     public Vector3 PixelToWorld(Vector2Int pixelPosition)
     {
@@ -94,7 +94,7 @@ public class SimulationController : MonoBehaviour
 
     public Color GetPixel(Vector2Int position) => _pixels[(position.y * Width) + position.x];
 
-    public float Eat(Vector2Int head, Vector2Int tail, int radius, Color amount, float biteStrength)
+    public float Eat(Vector2Int head, Vector2Int tail, int radius, Color amount, float biteStrength, float poopScale = 0.5f)
     {
         // Eat at the head
         var totalEaten = 0f;
@@ -120,8 +120,8 @@ public class SimulationController : MonoBehaviour
             totalEaten += eatR + eatG + eatB;
         });
 
+
         // Poop at the tail
-        const float poopScale = 0.5f;
         var poop = new Color(1f - amount.r, 1f - amount.g, 1f - amount.b)
             * totalEaten * poopScale / (Mathf.PI * radius * radius);
         ForEachPixelInCircle(tail, radius, (index, _, _) =>
@@ -168,9 +168,12 @@ public class SimulationController : MonoBehaviour
         position.x = Mathf.Clamp(position.x, 0, Width - 1);
         position.y = Mathf.Clamp(position.y, 0, Height - 1);
 
-        var child = parent.Reproduce(position, parent.Energy);
-        _pendingCreatures.Add(child);
-        child.CreateView(this);
+        var children = parent.Reproduce(this, position, parent.Energy);
+        _pendingCreatures.AddRange(children);
+        foreach (var child in children)
+        {
+            child.CreateView(this);
+        }
     }
 
     public float GetShynessPenalty(Vector2Int position, Creature self)

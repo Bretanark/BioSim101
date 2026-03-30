@@ -17,7 +17,9 @@ public class MushroomView : CreatureView<Mushroom>
 
     protected override void OnBind()
     {
-        _headRenderer.color = Creature.Color;
+        var c = Creature.Color;
+        c.a = 0.9f;
+        _headRenderer.color = c;
     }
 
     protected override void UpdateAlive()
@@ -26,14 +28,12 @@ public class MushroomView : CreatureView<Mushroom>
 
         var diameter = Controller.PixelToWorld(Creature.Radius * 2f);
         _head.localScale = new Vector3(diameter, diameter, 1f);
-
-        _headRenderer.color = Creature.Color;
     }
 
     protected override void UpdateDying(float alpha)
     {
         var c = _headRenderer.color;
-        c.a = alpha;
+        c.a = alpha * 0.9f;
         _headRenderer.color = c;
     }
 
