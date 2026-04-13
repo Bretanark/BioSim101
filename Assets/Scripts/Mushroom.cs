@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Mushroom : Creature
 {
-    private const float MaxPopulation = 20f;
+    private const float MaxPopulation = 15f;
+    private const float MaxPopulationBoost = 1.5f;
+    private const float MinSecondsToMaturity = 15f;
     private const int MinRadius = 2;
     private const int MaxRadius = 20;
     private const float startEnergy = 10f;
@@ -18,11 +20,13 @@ public class Mushroom : Creature
     /// <summary>How much energy is gained by eating</summary>
     public float Metabolism { get; set; } = 100f;
 
-    public int Radius =>
+    public float Radius =>
         Mathf.Clamp(
-            MinRadius + Mathf.FloorToInt(Energy / EnergyPerRadius),
+            MinRadius + Energy / EnergyPerRadius,
             MinRadius,
             MaxRadius);
+
+    private int PixelRadius => Mathf.Max(MinRadius, Mathf.RoundToInt(Radius));
 
     public override float AvoidanceRadius => Radius;
     public override string Name => $"Mushroom at {Position}";
@@ -39,16 +43,16 @@ public class Mushroom : Creature
         var results = new List<Creature>();
         for (var n = 0; n < numberOfSpawn; n++)
         {
-            var x = Position.x + Random.Range(Radius, SpawnRadius) * (Random.value < 0.5 ? -1 : 1);
+            var x = Position.x + Random.Range(PixelRadius, SpawnRadius) * (Random.value < 0.5 ? -1 : 1);
             if (x < 0 || x > controller.Width) continue;
 
-            var y = Position.y - Random.Range(Radius, SpawnRadius) * (Random.value < 0.5 ? -1 : 1);
+            var y = Position.y - Random.Range(PixelRadius, SpawnRadius) * (Random.value < 0.5 ? -1 : 1);
             if (y < 0 || y > controller.Height) continue;
 
             results.Add(new Mushroom(new Vector2Int(x, y), Color));
         }
 
-        IsDead = true;
+        Die(controller);
 
         return results.ToArray();
     }
@@ -61,8 +65,20 @@ public class Mushroom : Creature
 
     protected override void OnUpdate(SimulationController controller)
     {
-        var competition = Mathf.Max(0.1f, 1f - Population / MaxPopulation);
-        Energy += controller.Eat(Position, Position, Radius, Color, GrowthRate * Time.deltaTime, Metabolism) * Metabolism * competition - Fatigue;
+        var food = controller.Eat(Position, Position, PixelRadius, Color, GrowthRate * Time.deltaTime, Metabolism);
+        var populationShare = Mathf.Min(1f, MaxPopulation / Mathf.Max(1f, Population));
+        var maxGrowthThisFrame = (ReproductionEnergy - startEnergy) / MinSecondsToMaturity * Time.deltaTime;
+        var expectedFood = Mathf.Max(
+            Mathf.Epsilon,
+            Mathf.PI * Radius * Radius * GrowthRate * Time.deltaTime);
+        var localNutrition = Mathf.Clamp01(food / expectedFood);
+        var overpopulation = Mathf.Max(0f, Population / MaxPopulation - 1f);
+        var crowdingPenalty = overpopulation * (1f - localNutrition) * maxGrowthThisFrame;
+        var netEnergy = food * Metabolism * populationShare - Fatigue - crowdingPenalty;
+
+        Energy += netEnergy <= 0f
+            ? netEnergy
+            : Mathf.Min(netEnergy, maxGrowthThisFrame);
     }
 
     protected override void OnDeath(SimulationController controller)

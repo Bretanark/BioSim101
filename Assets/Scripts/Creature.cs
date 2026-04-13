@@ -34,21 +34,29 @@ public abstract class Creature
 
     public void Update(SimulationController controller)
     {
-        if (Energy >= 200f)
+        if (Energy >= ReproductionEnergy)
         {
             Energy *= 0.5f;
             controller.Reproduce(this);
         }
         else if (Energy <= 0f && !IsDead)
         {
-            IsDead = true;
-            PopulationByKey[GetPopulationKey()]--;
-            OnDeath(controller);
+            Die(controller);
         }
 
         OnUpdate(controller);
     }
 
+    protected void Die(SimulationController controller)
+    {
+        if (IsDead) return;
+
+        IsDead = true;
+        PopulationByKey[GetPopulationKey()]--;
+        OnDeath(controller);
+    }
+
+    protected virtual float ReproductionEnergy => 200f;
     protected virtual void OnUpdate(SimulationController controller) { }
     protected virtual void OnDeath(SimulationController controller) { }
 
