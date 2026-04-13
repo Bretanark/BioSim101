@@ -38,8 +38,12 @@ public class Mushroom : Creature
 
     public override Creature[] Reproduce(SimulationController controller, Vector2Int position, float energy)
     {
-        // Spawn some kids nearby
-        var numberOfSpawn = Random.Range(1, 6);
+        var populationShare = Mathf.Clamp01(MaxPopulation / Mathf.Max(1f, Population));
+        var spawnBudget = Mathf.Lerp(1f, 5f, populationShare);
+        var numberOfSpawn = Mathf.Max(1, Mathf.FloorToInt(spawnBudget));
+        if (Random.value < spawnBudget - numberOfSpawn)
+            numberOfSpawn++;
+
         var results = new List<Creature>();
         for (var n = 0; n < numberOfSpawn; n++)
         {
